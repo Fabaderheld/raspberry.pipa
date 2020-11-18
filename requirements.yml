@@ -1,0 +1,12 @@
+---
+- name: faba.docker
+  src: https://github.com/Fabaderheld/faba.docker.git
+
+- name: faba.common
+  src: https://github.com/Fabaderheld/faba.common.git
+
+- name: faba.useraccounts
+  src: https://github.com/Fabaderheld/faba.useraccounts.git
+
+- name: faba.powershell
+  src: https://github.com/Fabaderheld/faba.powershell.git
