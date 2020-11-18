@@ -1,0 +1,74 @@
+---
+- hosts: localhost
+  connection: local
+
+  vars:
+    user: faba
+    hostname: "raspberry-pipa"
+
+  roles:
+    # - faba.useraccounts
+    # - faba.common
+    - faba.docker
+
+  tasks:
+    # - name: "Remove pi user"
+    #   user:
+    #     name: pi
+    #     remove: yes
+    #     state: absent
+
+    - name: "Change Hostname"
+      hostname:
+        name: "{{ hostname }}"
+
+    - name: "Change Hostname in /etc/hosts"
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.0\.1[ \t]+localhost'
+        line: "127.0.0.1 localhost {{ hostname }}"
+        state: present
+
+    # - name: "Change {{ user }} user"
+    #   user:
+    #     name: "{{ user }}"
+    #     state: present
+    #     password: "$6$mmXmrHeLPspJf$TaDy/qRfYTdO7hYc0sqr.Arb0vskkj3Dv4ZN3RSKvjR.LwmdvjJtR9o5lyhVbCSvz4S36qWHy4348a4VG5r6n0"
+
+    - name: "Get Public Key from GitHub"
+      authorized_key:
+        user: "{{ user }}"
+        state: present
+        key: https://github.com/fabaderheld.keys
+        validate_certs: False
+
+    - name: "Install Packages"
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - vim
+
+    - name: "Create Duplicati Docker Container"
+      docker_container:
+        name: "Duplicati"
+        image: "linuxserver/duplicati"
+        state: absent
+        restart_policy: always
+        privileged: yes
+        pull: "yes"
+        published_ports:
+          - 8200:8200
+        # Additional parameters like user and version
+        env:
+          PUID: "34"
+          PGID: "34"
+          VERSION: duplicati
+          TZ: "Europe/Vienna"
+          DECONZ_VNC_MODE: "1"
+        volumes:
+          - "/{{docker_appdata}}/duplicati/config:/config"
+          - "/appdata:/source"
+          - "/mnt/synology/backup:/backup"
+      tags:
+        - docker
