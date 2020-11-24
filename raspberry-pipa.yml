@@ -102,12 +102,12 @@
             state: started
             restart_policy: always
             published_ports:
-            - "3875:3875"
+              - "3875:3875"
             env:
-            PUID: "duplicacy"
-            PGID: "duplicacy"
-            ACME_AGREE: "true"
-            TZ: "Europe/Vienna"
+              PUID: "duplicacy"
+              PGID: "duplicacy"
+              ACME_AGREE: "true"
+              TZ: "Europe/Vienna"
             volumes:
             - "/appdata/duplicacy:/config"
         tags:
