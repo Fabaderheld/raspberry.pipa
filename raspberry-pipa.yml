@@ -72,3 +72,49 @@
           - "/mnt/synology/backup:/backup"
       tags:
         - docker
+- name: "Pull latest Duplicacy Docker"
+  git:
+    repo: "https://github.com/Fabaderheld/docker-duplicacy.git"
+    dest: /tmp/docker-Duplicacy
+    clone: yes
+    accept_hostkey: yes
+  tags:
+    - docker
+    - duplicacy
+
+- name: "Build Duplicacy Docker Image"
+  docker_image:
+    name: docker-duplicacy:latest
+    build:
+      path: "/tmp/docker-Duplicacy"
+      pull: yes
+    source: build
+  tags:
+    - docker
+    - duplicacy
+  register: docker_duplicacy
+
+- name: "Create Duplicacy Docker Container"
+  docker_container:
+    name: "Duplicacy"
+    image: "docker-duplicacy:latest"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "3875:3875"
+    env:
+      PUID: "duplicacy"
+      PGID: "duplicacy"
+      ACME_AGREE: "true"
+      TZ: "Europe/Vienna"
+    volumes:
+      - "/appdata/duplicacy:/config"
+  tags:
+    - docker
+    - duplicacy
+  ignore_errors: yes
+
+- name: "Remove dangling images"
+  command: "docker image prune -f"
+  tags:
+    - docker
