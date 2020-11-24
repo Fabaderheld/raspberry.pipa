@@ -109,7 +109,8 @@
               ACME_AGREE: "true"
               TZ: "Europe/Vienna"
             volumes:
-            - "/appdata/duplicacy:/config"
+              - "/appdata/duplicacy:/config"
+              - "/synology:/source"
         tags:
             - docker
             - duplicacy
