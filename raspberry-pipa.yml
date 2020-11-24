@@ -1,120 +1,121 @@
 ---
-- hosts: localhost
-  connection: local
+  - hosts: localhost
+    connection: local
 
-  vars:
-    user: faba
-    hostname: "raspberry-pipa"
+    vars:
+      user: faba
+      hostname: "raspberry-pipa"
 
-  roles:
-    # - faba.useraccounts
-    # - faba.common
-    - faba.docker
+    roles:
+      # - faba.useraccounts
+      # - faba.common
+      - faba.docker
 
-  tasks:
-    # - name: "Remove pi user"
-    #   user:
-    #     name: pi
-    #     remove: yes
-    #     state: absent
+    tasks:
+      # - name: "Remove pi user"
+      #   user:
+      #     name: pi
+      #     remove: yes
+      #     state: absent
 
-    - name: "Change Hostname"
-      hostname:
-        name: "{{ hostname }}"
+      - name: "Change Hostname"
+        hostname:
+          name: "{{ hostname }}"
 
-    - name: "Change Hostname in /etc/hosts"
-      lineinfile:
-        dest: /etc/hosts
-        regexp: '^127\.0\.0\.1[ \t]+localhost'
-        line: "127.0.0.1 localhost {{ hostname }}"
-        state: present
+      - name: "Change Hostname in /etc/hosts"
+        lineinfile:
+          dest: /etc/hosts
+          regexp: '^127\.0\.0\.1[ \t]+localhost'
+          line: "127.0.0.1 localhost {{ hostname }}"
+          state: present
 
-    # - name: "Change {{ user }} user"
-    #   user:
-    #     name: "{{ user }}"
-    #     state: present
-    #     password: "$6$mmXmrHeLPspJf$TaDy/qRfYTdO7hYc0sqr.Arb0vskkj3Dv4ZN3RSKvjR.LwmdvjJtR9o5lyhVbCSvz4S36qWHy4348a4VG5r6n0"
+      # - name: "Change {{ user }} user"
+      #   user:
+      #     name: "{{ user }}"
+      #     state: present
+      #     password: "$6$mmXmrHeLPspJf$TaDy/qRfYTdO7hYc0sqr.Arb0vskkj3Dv4ZN3RSKvjR.LwmdvjJtR9o5lyhVbCSvz4S36qWHy4348a4VG5r6n0"
 
-    - name: "Get Public Key from GitHub"
-      authorized_key:
-        user: "{{ user }}"
-        state: present
-        key: https://github.com/fabaderheld.keys
-        validate_certs: False
+      - name: "Get Public Key from GitHub"
+        authorized_key:
+          user: "{{ user }}"
+          state: present
+          key: https://github.com/fabaderheld.keys
+          validate_certs: False
 
-    - name: "Install Packages"
-      package:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - vim
+      - name: "Install Packages"
+        package:
+          name: "{{ item }}"
+          state: present
+        loop:
+          - vim
 
-    - name: "Create Duplicati Docker Container"
-      docker_container:
-        name: "Duplicati"
-        image: "linuxserver/duplicati"
-        state: absent
-        restart_policy: always
-        privileged: yes
-        pull: "yes"
-        published_ports:
-          - 8200:8200
-        # Additional parameters like user and version
-        env:
-          PUID: "34"
-          PGID: "34"
-          VERSION: duplicati
-          TZ: "Europe/Vienna"
-          DECONZ_VNC_MODE: "1"
-        volumes:
-          - "/{{docker_appdata}}/duplicati/config:/config"
-          - "/appdata:/source"
-          - "/mnt/synology/backup:/backup"
-      tags:
-        - docker
-- name: "Pull latest Duplicacy Docker"
-  git:
-    repo: "https://github.com/Fabaderheld/docker-duplicacy.git"
-    dest: /tmp/docker-Duplicacy
-    clone: yes
-    accept_hostkey: yes
-  tags:
-    - docker
-    - duplicacy
+      - name: "Create Duplicati Docker Container"
+        docker_container:
+          name: "Duplicati"
+          image: "linuxserver/duplicati"
+          state: absent
+          restart_policy: always
+          privileged: yes
+          pull: "yes"
+          published_ports:
+            - 8200:8200
+          # Additional parameters like user and version
+          env:
+            PUID: "34"
+            PGID: "34"
+            VERSION: duplicati
+            TZ: "Europe/Vienna"
+            DECONZ_VNC_MODE: "1"
+          volumes:
+            - "/{{docker_appdata}}/duplicati/config:/config"
+            - "/appdata:/source"
+            - "/mnt/synology/backup:/backup"
+        tags:
+          - docker
 
-- name: "Build Duplicacy Docker Image"
-  docker_image:
-    name: docker-duplicacy:latest
-    build:
-      path: "/tmp/docker-Duplicacy"
-      pull: yes
-    source: build
-  tags:
-    - docker
-    - duplicacy
-  register: docker_duplicacy
+      - name: "Pull latest Duplicacy Docker"
+        git:
+          repo: "https://github.com/Fabaderheld/docker-duplicacy.git"
+          dest: /tmp/docker-Duplicacy
+          clone: yes
+          accept_hostkey: yes
+        tags:
+            - docker
+            - duplicacy
 
-- name: "Create Duplicacy Docker Container"
-  docker_container:
-    name: "Duplicacy"
-    image: "docker-duplicacy:latest"
-    state: started
-    restart_policy: always
-    published_ports:
-      - "3875:3875"
-    env:
-      PUID: "duplicacy"
-      PGID: "duplicacy"
-      ACME_AGREE: "true"
-      TZ: "Europe/Vienna"
-    volumes:
-      - "/appdata/duplicacy:/config"
-  tags:
-    - docker
-    - duplicacy
-  ignore_errors: yes
+      - name: "Build Duplicacy Docker Image"
+        docker_image:
+            name: docker-duplicacy:latest
+            build:
+            path: "/tmp/docker-Duplicacy"
+            pull: yes
+            source: build
+        tags:
+            - docker
+            - duplicacy
+        register: docker_duplicacy
 
-- name: "Remove dangling images"
-  command: "docker image prune -f"
-  tags:
-    - docker
+      - name: "Create Duplicacy Docker Container"
+        docker_container:
+            name: "Duplicacy"
+            image: "docker-duplicacy:latest"
+            state: started
+            restart_policy: always
+            published_ports:
+            - "3875:3875"
+            env:
+            PUID: "duplicacy"
+            PGID: "duplicacy"
+            ACME_AGREE: "true"
+            TZ: "Europe/Vienna"
+            volumes:
+            - "/appdata/duplicacy:/config"
+        tags:
+            - docker
+            - duplicacy
+        ignore_errors: yes
+
+      - name: "Remove dangling images"
+        command: "docker image prune -f"
+        tags:
+          - docker
