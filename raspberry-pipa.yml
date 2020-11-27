@@ -90,6 +90,7 @@
             path: "/tmp/docker-Duplicacy"
             pull: yes
             source: build
+            force: yes
         tags:
             - docker
             - duplicacy
@@ -101,6 +102,7 @@
             image: "docker-duplicacy:latest"
             state: started
             restart_policy: always
+            privileged: yes
             published_ports:
               - "3875:3875"
             env:
