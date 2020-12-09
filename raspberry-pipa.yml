@@ -29,11 +29,11 @@
           line: "127.0.0.1 localhost {{ hostname }}"
           state: present
 
-      # - name: "Change {{ user }} user"
-      #   user:
-      #     name: "{{ user }}"
-      #     state: present
-      #     password: "$6$mmXmrHeLPspJf$TaDy/qRfYTdO7hYc0sqr.Arb0vskkj3Dv4ZN3RSKvjR.LwmdvjJtR9o5lyhVbCSvz4S36qWHy4348a4VG5r6n0"
+      - name: "Change {{ user }} user"
+        user:
+          name: "{{ user }}"
+          state: present
+          password: "$6$mmXmrHeLPspJf$TaDy/qRfYTdO7hYc0sqr.Arb0vskkj3Dv4ZN3RSKvjR.LwmdvjJtR9o5lyhVbCSvz4S36qWHy4348a4VG5r6n0"
 
       - name: "Get Public Key from GitHub"
         authorized_key:
